@@ -64,7 +64,7 @@ def FASTA(acc):
     defline = gen.next()
     if defline.startswith('>'):
         return defline, gen
-    sys.stderr.write("Unexpected output from eutils:\n{}\n", defline)
+    sys.stderr.write("Unexpected output from eutils:\n{}\n".format(defline))
     return None, None
 
 
