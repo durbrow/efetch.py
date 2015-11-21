@@ -97,7 +97,7 @@ def SRARunList(term):
             runlist.extend(SRARun.extractRuns(rslt[uid]['runs']))
         return runlist
     except KeyError:
-        return None
+        return []
 
 
 def FASTA(acc):
