@@ -3,7 +3,7 @@
     Retrieve sequence data as FASTA from NCBI using eutils
     
     The following example will fetch the sequence of chromosome 8 of GRCh37:
-        python efetch.py CM000670.1
+        python efetch.py fasta CM000670.1
 
     See:
         http://www.ncbi.nlm.nih.gov/books/NBK25499/
@@ -43,19 +43,8 @@ def _lines(resp):
 
 
 class SRARun:
-    def _start_element(self, name, attrs):
-        self.properties = attrs;
-        
-    def __init__(self, xmlStr):
-        self.properties = []
-        xmlStr = xmlStr.strip(string.whitespace)
-        if xmlStr.find("&lt;") == 0:
-            xmlStr = '<' + xmlStr[4:]
-        if xmlStr.rfind('&gt;') == len(xmlStr) - 4:
-            xmlStr = xmlStr[:-4] + '>'
-        p = xml.parsers.expat.ParserCreate('UTF-8')
-        p.StartElementHandler = self._start_element
-        p.Parse(xmlStr.encode('utf-8'))
+    def __init__(self, properties):
+        self.properties = properties
     
     def accession(self):
         return str(self.properties['acc'])
@@ -71,7 +60,21 @@ class SRARun:
     
     def __repr__(self):
         return self.properties.__repr__()
-
+        
+    @classmethod
+    def extractRuns(cls, xmlStr):
+        runs = []
+        def startElement(name, attrs):
+            if name == "Run":
+                runs.append(SRARun(attrs))
+        
+        xmlStr = xmlStr.replace('&lt;', '<')
+        xmlStr = xmlStr.replace('&gt;', '>')
+        xmlStr = xmlStr.replace('&amp;', '&')
+        p = xml.parsers.expat.ParserCreate('utf-8')
+        p.StartElementHandler = startElement
+        p.Parse(("<Runs>" + xmlStr + "</Runs>").encode('utf-8'))
+        return runs
     
 def SRARunList(term):
     """
@@ -89,7 +92,10 @@ def SRARunList(term):
     resp = conn.getresponse()
     try:
         rslt = json.load(resp)['result']
-        return map((lambda x: SRARun(rslt[x]['runs'])), rslt['uids'])
+        runlist = []
+        for uid in rslt['uids']:
+            runlist.extend(SRARun.extractRuns(rslt[uid]['runs']))
+        return runlist
     except KeyError:
         return None
 
@@ -124,9 +130,19 @@ def FASTA(acc):
 
 if __name__ == '__main__':
     import sys
-    for arg in sys.argv[1:]:
-#        print(map((lambda x: x.totalBases()), SRARunList(arg)))
-        defline, lines = FASTA(arg)
-        print(defline)
-        for line in lines:
-            print(line)
+    try:
+        verb = sys.argv[1]
+        query = sys.argv[2:]
+    except:
+        pass
+    if verb == "fasta":
+        for arg in query:
+            defline, lines = FASTA(arg)
+            if defline:
+                print(defline)
+                for line in lines:
+                    print(line)
+    if verb == "runs":
+        for arg in query:
+            for run in SRARunList(arg):
+                print(run.accession())
