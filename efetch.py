@@ -125,8 +125,8 @@ def FASTA(acc):
 if __name__ == '__main__':
     import sys
     for arg in sys.argv[1:]:
-        print(map((lambda x: x.totalBases()), SRARunList(arg)))
-#         defline, lines = FASTA(arg)
-#         print(defline)
-#         for line in lines:
-#             print(line)
+#        print(map((lambda x: x.totalBases()), SRARunList(arg)))
+        defline, lines = FASTA(arg)
+        print(defline)
+        for line in lines:
+            print(line)
