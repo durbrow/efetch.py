@@ -5,7 +5,7 @@ Requires the ability to communicate with eutils.ncbi.nlm.nih.gov
 
 The following example will fetch the sequence of chromosome 8 of GRCh37:
 ```bash
-python efetch.py CM000670.1
+python efetch.py fasta CM000670.1
 ```
 
 This can also be imported as a module, like so:
